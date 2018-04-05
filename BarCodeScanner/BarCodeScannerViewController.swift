@@ -12,11 +12,12 @@ import AVFoundation
 import UIKit
 
 
-class BarCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+class BarCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, AVCapturePhotoCaptureDelegate {
     var captureSession = AVCaptureSession()
     var videoPreviewLayer: AVCaptureVideoPreviewLayer?
     var barCodeFrameView: UIView? // for Extra credit section 3
     var initialized = false
+    var capturePhotoOutput : NSObject? = nil
 
     let barCodeTypes = [AVMetadataObject.ObjectType.upce,
                         AVMetadataObject.ObjectType.code39,
@@ -112,6 +113,15 @@ class BarCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObj
             if success {
                 let captureMetadataOutput = AVCaptureMetadataOutput()
                 captureSession.addOutput(captureMetadataOutput)
+
+                if #available(iOS 10.0, *) {
+                    capturePhotoOutput = AVCapturePhotoOutput()
+                    if let capturePhotoOutput = capturePhotoOutput as? AVCapturePhotoOutput {
+                        capturePhotoOutput.setPreparedPhotoSettingsArray([AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecJPEG])], completionHandler: nil)
+                        captureSession.addOutput(capturePhotoOutput)
+                    }
+                }
+                
                 let newSerialQueue = DispatchQueue(label: "barCodeScannerQueue") // in iOS 11 you can use main queue
                 captureMetadataOutput.setMetadataObjectsDelegate(self, queue: newSerialQueue)
                 captureMetadataOutput.metadataObjectTypes = barCodeTypes
@@ -167,6 +177,18 @@ class BarCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObj
     
     // Swift 4 callback
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        if #available(iOS 10.0, *) {
+            if let capturePhotoOutput = capturePhotoOutput as? AVCapturePhotoOutput {
+                let settings = AVCapturePhotoSettings()
+                let previewPixelType = settings.availablePreviewPhotoPixelFormatTypes.first!
+                let previewFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPixelType,
+                                     kCVPixelBufferWidthKey as String: 160,
+                                     kCVPixelBufferHeightKey as String: 160]
+                settings.previewPhotoFormat = previewFormat
+                settings.flashMode = .off
+                capturePhotoOutput.capturePhoto(with: settings, delegate: self)
+            }
+        }
         processBarCodeData(metadataObjects: metadataObjects)
     }
     
@@ -302,6 +324,55 @@ class BarCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObj
             }
         }
     }
+
+    // Photo capture delegate methods
     
+    @available(iOS 11.0, *)
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto: AVCapturePhoto, error: Error?) {
+        NSLog("didFinishProcessingPhoto")
+    }
+    
+    @available(iOS 10.0, *)
+    func photoOutput(_: AVCapturePhotoOutput, willBeginCaptureFor: AVCaptureResolvedPhotoSettings) {
+        NSLog("willBeginCapture")
+    }
+    
+    @available(iOS 10.0, *)
+    func photoOutput(_: AVCapturePhotoOutput, willCapturePhotoFor: AVCaptureResolvedPhotoSettings) {
+        NSLog("willCapturePhoto")
+    }
+    
+    @available(iOS 10.0, *)
+    func photoOutput(_: AVCapturePhotoOutput, didCapturePhotoFor: AVCaptureResolvedPhotoSettings) {
+        NSLog("didCapturePhoto")
+    }
+    
+    @available(iOS 10.0, *)
+    func photoOutput(_: AVCapturePhotoOutput, didFinishCaptureFor: AVCaptureResolvedPhotoSettings, error: Error?) {
+        NSLog("didFinishCapture")
+    }
+    
+    //This is for iOS 10 (above is for iOS 11)
+    @available(iOS 10.0, *)
+    func photoOutput(_ output: AVCapturePhotoOutput,
+                     didFinishProcessingPhoto photoSampleBuffer: CMSampleBuffer?,
+                     previewPhoto previewPhotoSampleBuffer: CMSampleBuffer?,
+                     resolvedSettings: AVCaptureResolvedPhotoSettings,
+                     bracketSettings: AVCaptureBracketedStillImageSettings?,
+                     error: Error?) {
+        NSLog("didFinishProcessingPhoto")
+        if let sampleBuffer = photoSampleBuffer, let previewBuffer = previewPhotoSampleBuffer {
+            if let dataImage = AVCapturePhotoOutput.jpegPhotoDataRepresentation(forJPEGSampleBuffer: sampleBuffer, previewPhotoSampleBuffer: previewBuffer) {
+                if let image = UIImage(data: dataImage) {
+                    NSLog(String(format: "image size: %d, %d", image.size.width, image.size.height))
+                    if let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "ImagePreviewViewController") as? ImagePreviewViewController{
+                        vc.image = image
+                        self.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
+            }
+        }
+        
+    }
     
 }
