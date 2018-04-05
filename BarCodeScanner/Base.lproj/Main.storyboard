@@ -26,6 +26,35 @@
             </objects>
             <point key="canvasLocation" x="-305" y="421"/>
         </scene>
+        <!--Image Preview View Controller-->
+        <scene sceneID="bY2-PJ-sAf">
+            <objects>
+                <viewController storyboardIdentifier="ImagePreviewViewController" id="g8t-ZT-T2y" customClass="ImagePreviewViewController" customModule="BarCodeScanner" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="BNH-BP-Pqn">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gIH-gV-STd">
+                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="3Vy-hz-iNO" firstAttribute="bottom" secondItem="gIH-gV-STd" secondAttribute="bottom" id="AMN-RC-g86"/>
+                            <constraint firstItem="gIH-gV-STd" firstAttribute="top" secondItem="3Vy-hz-iNO" secondAttribute="top" id="N98-aw-9RT"/>
+                            <constraint firstItem="3Vy-hz-iNO" firstAttribute="trailing" secondItem="gIH-gV-STd" secondAttribute="trailing" id="Wd5-su-pM7"/>
+                            <constraint firstItem="gIH-gV-STd" firstAttribute="leading" secondItem="3Vy-hz-iNO" secondAttribute="leading" id="zGS-4v-p5p"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="3Vy-hz-iNO"/>
+                    </view>
+                    <connections>
+                        <outlet property="imageView" destination="gIH-gV-STd" id="O0c-K0-VCM"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="his-WU-0Oh" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="436" y="421.43928035982015"/>
+        </scene>
         <!--Bar Code Scanner-->
         <scene sceneID="yws-uO-gG2">
             <objects>
